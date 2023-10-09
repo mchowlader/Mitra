@@ -188,3 +188,13 @@ D:\MCH\PetProject\Mitra\src\MITRA\Mitra.Api\obj\Debug\net6.0\refint\Mitra.Api.dl
 D:\MCH\PetProject\Mitra\src\MITRA\Mitra.Api\obj\Debug\net6.0\Mitra.Api.pdb
 D:\MCH\PetProject\Mitra\src\MITRA\Mitra.Api\obj\Debug\net6.0\Mitra.Api.genruntimeconfig.cache
 D:\MCH\PetProject\Mitra\src\MITRA\Mitra.Api\obj\Debug\net6.0\ref\Mitra.Api.dll
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.csproj.AssemblyReference.cache
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.GeneratedMSBuildEditorConfig.editorconfig
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.AssemblyInfoInputs.cache
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.AssemblyInfo.cs
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.csproj.CoreCompileInputs.cache
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.MvcApplicationPartsAssemblyInfo.cs
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.MvcApplicationPartsAssemblyInfo.cache
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.dll
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\refint\Mitra.Api.dll
+D:\MCH\PetProject\Mitra\src\Mitra.Api\obj\Debug\net6.0\Mitra.Api.pdb

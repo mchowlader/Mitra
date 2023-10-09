@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Mitra.Api.DBModel;
 using Mitra.Api.Seeding;
 using Mitra.Api.Services;
@@ -32,6 +33,11 @@ public static class DependencyInjectionSetup
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultUI()
         .AddDefaultTokenProviders();
+
+        services.AddOptions<ApplicationOptions>()
+                .BindConfiguration("JWTSettingConfig")
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
         return services;
     }
