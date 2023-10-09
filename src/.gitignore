@@ -1,0 +1,24 @@
+# Ignore build and object files within the src directory
+bin/
+obj/
+
+# Ignore NuGet packages within the src directory
+*.nupkg
+
+# Visual Studio Code-specific settings
+.vscode/
+
+# Rider IDE-specific settings
+.idea/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Visual Studio for Mac-specific settings
+.history/

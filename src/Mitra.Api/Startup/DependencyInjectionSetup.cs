@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
+using Mitra.Api.Common;
 using Mitra.Api.DBModel;
 using Mitra.Api.Seeding;
 using Mitra.Api.Services;
@@ -22,6 +24,14 @@ public static class DependencyInjectionSetup
         services.AddScoped<IUserServices, UserServices>();
         services.AddScoped<ITokenServices, TokenServices>();
         services.AddScoped<ILoginHistortServices, LoginHistortServices>();
+        services.AddScoped<JWTServices>();
+
+        services.AddOptions<JWTSettingConfig>()
+                .BindConfiguration("JWTSettingConfig")
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<JWTSettingConfig>>().Value);
+
         services.AddIdentity<ApplicationUser, ApplicationRole>(option =>
         {
             option.Password.RequireDigit = false;
@@ -34,11 +44,7 @@ public static class DependencyInjectionSetup
         .AddDefaultUI()
         .AddDefaultTokenProviders();
 
-        services.AddOptions<ApplicationOptions>()
-                .BindConfiguration("JWTSettingConfig")
-                .ValidateDataAnnotations()
-                .ValidateOnStart();
-
+       
         return services;
     }
 }

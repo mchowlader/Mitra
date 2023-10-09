@@ -15,13 +15,15 @@ public class UserServices : IUserServices
     private readonly IConfiguration _configuration;
     private readonly ITokenServices _tokenServices;
     private readonly ILoginHistortServices _loginHistortServices;
+    private JWTServices JWTServices { get; }
     DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
     public UserServices(UserManager<ApplicationUser> userManager
         , RoleManager<ApplicationRole> roleManager
         , IConfiguration configuration
         , ITokenServices tokenServices
-        , ILoginHistortServices loginHistortServices)
+        , ILoginHistortServices loginHistortServices
+        , JWTServices jwtServices)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -29,8 +31,9 @@ public class UserServices : IUserServices
         _configuration = configuration;
         _loginHistortServices = loginHistortServices;
         optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
+        JWTServices = jwtServices;
     }
-    public async Task<ServiceResponse<SignInDTO>> SignIn(SignInDTO model)
+    public async Task<ServiceResponse<SignInResponseDTO>> SignIn(SignInDTO model)
     {
         try
         {
@@ -38,7 +41,7 @@ public class UserServices : IUserServices
 
             #region Bad Login Attemots
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, model.Password);
-            if (user == null || !isPasswordValid) return ServiceResponse<SignInDTO>.Unauthorizes(401, "Invalid login credentials");
+            if (user == null || !isPasswordValid) return ServiceResponse<SignInResponseDTO>.Unauthorizes(401, "Invalid login credentials");
 
             var role = _userManager.GetRolesAsync(user);
             //if ((role.Result[0] == "Developer" || role.Result[0] == "User" || role.Result[0] == "Admin") && !user.EmailConfirmed)
@@ -51,7 +54,7 @@ public class UserServices : IUserServices
             { 
                 return await ValidResponse(user); 
             };
-            return ServiceResponse<SignInDTO>.Success("SignIn Successfully.");
+            return ServiceResponse<SignInResponseDTO>.Success("SignIn Successfully.");
 
         }
         catch (Exception ex)
@@ -134,7 +137,7 @@ public class UserServices : IUserServices
         }
     }
 
-    private async Task<ServiceResponse<SignInDTO>> ValidResponse(ApplicationUser user)
+    private async Task<ServiceResponse<SignInResponseDTO>> ValidResponse(ApplicationUser user)
     {
         var roles = _userManager.GetRolesAsync(user);
         SignInUserInfo userInfo = new SignInUserInfo();
@@ -157,18 +160,20 @@ public class UserServices : IUserServices
         var data = await _tokenServices.SaveRefreshToken(refreshToken);
         var response = new SignInResponseDTO()
         {
-            successResponse =
+            successResponse = new SuccessfullSignInResponse
             {
-                Token = Jwt.GetToken()
+                Token = JWTServices.GetToken(user.Id.ToString(), roles.Result.FirstOrDefault(), refreshToken.Token),
+                RefreshToken = refreshToken.Token,
+                User = userInfo
             }
         };
-        return ServiceResponse<SignInDTO>.Success();
+        return ServiceResponse<SignInResponseDTO>.Success("" ,response);
         //return ServiceResponse<ApplicationUser>.Success("", null);
     }
 }
 
 public interface IUserServices
 {
-    Task<ServiceResponse<SignInDTO>> SignIn(SignInDTO model);
+    Task<ServiceResponse<SignInResponseDTO>> SignIn(SignInDTO model);
     Task<ServiceResponse<ApplicationUser>> SignUp(SignUpDTO model, string identityUserId);
 }

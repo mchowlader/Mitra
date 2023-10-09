@@ -73,17 +73,7 @@ namespace Mitra.Api.Services
                     var data = await context.SaveChangesAsync();
                     #endregion
 
-                    return ServiceResponse<object>.Success("Refresh Token Save Successfully", data);
-                    //return new PayloadResponse<object>()
-                    //{
-                    //    Message= new List<string> { "Refresh Token Save Successfully" },
-                    //    Payload = data,
-                    //    PayloadType = "Save Refresh Token",
-                    //    RequestTime = requestTime,
-                    //    ResponseTime = Utilities.GenerateRefreshToken(),
-                    //    Success = true
-                    //};
-                }
+                    return ServiceResponse<object>.Success("Refresh Token Save Successfully", data)                }
             }
             catch (Exception ex)
             {
