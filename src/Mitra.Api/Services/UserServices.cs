@@ -5,6 +5,8 @@ using Mitra.Api.DBModel;
 using Mitra.Api.Models;
 using Mitra.Api.Models.DBModel;
 using System.Linq;
+using System.Security.Claims;
+
 namespace Mitra.Api.Services;
 
 public class UserServices : IUserServices
@@ -14,7 +16,7 @@ public class UserServices : IUserServices
     private readonly string requestTime = Utilities.GetRequestResponseTime();
     private readonly IConfiguration _configuration;
     private readonly ITokenServices _tokenServices;
-    private readonly ILoginHistortServices _loginHistortServices;
+    private readonly ILoginHistoryServices _loginHistoryServices;
     private JWTServices JWTServices { get; }
     DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
@@ -22,14 +24,14 @@ public class UserServices : IUserServices
         , RoleManager<ApplicationRole> roleManager
         , IConfiguration configuration
         , ITokenServices tokenServices
-        , ILoginHistortServices loginHistortServices
+        , ILoginHistoryServices loginHistoryServices
         , JWTServices jwtServices)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _tokenServices = tokenServices;
         _configuration = configuration;
-        _loginHistortServices = loginHistortServices;
+        _loginHistoryServices = loginHistoryServices;
         optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
         JWTServices = jwtServices;
     }
@@ -43,7 +45,7 @@ public class UserServices : IUserServices
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, model.Password);
             if (user == null || !isPasswordValid) return ServiceResponse<SignInResponseDTO>.Unauthorizes(401, "Invalid login credentials");
 
-            var role = _userManager.GetRolesAsync(user);
+            var role = await _userManager.GetRolesAsync(user);
             //if ((role.Result[0] == "Developer" || role.Result[0] == "User" || role.Result[0] == "Admin") && !user.EmailConfirmed)
             //{
             //    return ServiceResponse<SignInDTO>.Unauthorizes(501, "Please confirm your email before logging in.");
@@ -99,7 +101,7 @@ public class UserServices : IUserServices
                 if (!addRole.Succeeded)
                     return ServiceResponse<ApplicationUser>
                            .Error("Role Create Failed: " + addRole.Errors
-                           .Select(x => x.Description.Replace("User name", "Usernaem")).ToList()
+                           .Select(x => x.Description.Replace("User name", "Username")).ToList()
                            .ToCommaSeparatedString());
 
                 user.PasswordHash = null;
@@ -136,19 +138,18 @@ public class UserServices : IUserServices
             throw;
         }
     }
-
     private async Task<ServiceResponse<SignInResponseDTO>> ValidResponse(ApplicationUser user)
     {
-        var roles = _userManager.GetRolesAsync(user);
+        var roles = await _userManager.GetRolesAsync(user);
         SignInUserInfo userInfo = new SignInUserInfo();
         userInfo.UserId = user.Id;
         userInfo.FirstName = user.FirstName;
         userInfo.LastName = user.LastName;
         userInfo.UserName = user.UserName;
         userInfo.EmailConfirmed = user.EmailConfirmed;
-        userInfo.Role = roles.Result.FirstOrDefault();
+        userInfo.Role = roles.FirstOrDefault();
         await _tokenServices.DeleteRefreshTokenByUserId(user.Id.ToString());
-        await _loginHistortServices.SaveLoginHistory(user.Id);
+        await _loginHistoryServices.SaveLoginHistory(user.Id);
 
         var refreshToken = new RefreshToken()
         {
@@ -162,18 +163,43 @@ public class UserServices : IUserServices
         {
             successResponse = new SuccessfullSignInResponse
             {
-                Token = JWTServices.GetToken(user.Id.ToString(), roles.Result.FirstOrDefault(), refreshToken.Token),
+                Token = JWTServices.GetToken(user.Id.ToString(), roles.FirstOrDefault(), refreshToken.Token),
                 RefreshToken = refreshToken.Token,
                 User = userInfo
             }
         };
-        return ServiceResponse<SignInResponseDTO>.Success("" ,response);
-        //return ServiceResponse<ApplicationUser>.Success("", null);
+        return ServiceResponse<SignInResponseDTO>.Success(null, response);
+
+    }
+    public async Task<ServiceResponse<SignOutDTO>> SignOut(SignOutDTO model)
+    {
+        try
+        {
+            var principal = JWTServices.GetPrincipalFromExpiredToken(model.Token);
+            var user = await _userManager
+                .FindByIdAsync(principal.Claims.Where(x => x.Type == ClaimTypes.Name)
+                .Select(y => y.Value)
+                .FirstOrDefault());
+            var loginHistoryServices = await _loginHistoryServices.UpdateLoginHistory(user.Id);
+
+             if (loginHistoryServices.message.Contains("Not SignIn")) 
+                return ServiceResponse<SignOutDTO>.Success("You are not SignIn", null );
+
+            if (user is null) 
+                return ServiceResponse<SignOutDTO>.Success("You have been log out successfully.");
+            var data = await _tokenServices.DeleteRefreshToken(user.Id.ToString(), model.RefreshToken);
+            return ServiceResponse<SignOutDTO>.Success("You have been log out successfully.");
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
     }
 }
 
 public interface IUserServices
 {
     Task<ServiceResponse<SignInResponseDTO>> SignIn(SignInDTO model);
+    Task<ServiceResponse<SignOutDTO>> SignOut(SignOutDTO model);
     Task<ServiceResponse<ApplicationUser>> SignUp(SignUpDTO model, string identityUserId);
 }

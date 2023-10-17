@@ -2,8 +2,8 @@
 {
     public class LoginHistory : BaseModel
     {
-        public DateTime? LoginTime { get; set; }
-        public DateTime? LoginOut { get; set; }
+        public DateTime? LogInTime { get; set; }
+        public DateTime? LogOutTime { get; set; }
         public string Status { get; set; }
     }
 }

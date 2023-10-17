@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Mitra.Api.Common;
 using Mitra.Api.DBModel;
 using Mitra.Api.Models;
+using Mitra.Api.Models.DBModel;
 using Mitra.Api.Services;
 
 namespace Mitra.Api.Controllers;
@@ -26,15 +27,18 @@ public class AccountController : ControllerBase
 
         try
         {
-            var result = await _services.SignUp(model, User != null ? User.Identity.Name : "");
+            var response = await _services.SignUp(model, User != null ? User.Identity.Name : "");
 
             return Ok(new PayloadResponse<ApplicationUser>
             {
-                Message = result.message,
-                Payload = result.data,
+
+                Success = response.success,
+                Message = response.message,
+                Payload = response.data,
                 PayloadType = "User SignUp",
                 RequestTime = requestTime,
-                Success = result.success
+                ResponseTime = Utilities.GetRequestResponseTime()
+
             });
         }
         catch (Exception ex)
@@ -51,12 +55,53 @@ public class AccountController : ControllerBase
 
         try
         {
-            var result = await _services.SignIn(model);
-            return Ok(result);
+            var response = await _services.SignIn(model);
+            return Ok(response);
         }
         catch (Exception ex)
         {
             throw;
         }
     }
+
+    [HttpPost]
+    [Route("SignOut")]
+    public async Task<IActionResult> SignOut([FromBody] SignOutDTO model)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+
+        try
+        {
+            var response = await _services.SignOut(model);
+            return Ok(new PayloadResponse<SignOutDTO>
+            {
+                Success = response.success,
+                Message = response.message,
+                Payload = null,
+                PayloadType = "Sign Out",
+                RequestTime = requestTime,
+                ResponseTime = Utilities.GetRequestResponseTime()
+            });
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    /*[HttpPost]
+    [Route("RefreshToken")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshToken model)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+        try
+        {
+            _services.RefreshTokenValidate(model);
+             return Ok();
+        }
+        catch (Exception ex)
+        {       
+            throw;
+        }
+    }*/
 }

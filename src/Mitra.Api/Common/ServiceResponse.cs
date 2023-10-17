@@ -8,7 +8,7 @@ public class ServiceResponse<TEntity> where TEntity : class
     public List<string> message { get; set; }
     public bool success { get; set; }
     public int code { get; set; }
-    public string token {  get; set; }
+   // public string token {  get; set; }
     public static ServiceResponse<TEntity> Error(string message = null)
     {
         if (message.IsNotNullOrEmpty())
